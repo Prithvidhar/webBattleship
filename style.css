@@ -1,0 +1,47 @@
+body{
+    height:100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    
+
+}
+.header
+{
+    text-align: center;
+}
+.playarea
+{
+    display: flex;
+    justify-content: space-around;
+}
+.playarea > div:first-child
+{
+    display: grid;
+    height: 20rem;
+    width: 20rem;
+    /* border: solid black 5px; */
+    grid-template-columns: repeat(10,1fr);
+    grid-template-rows: repeat(10,1fr);
+    
+}
+.playarea > div:last-child
+{
+    display: grid;
+    height: 20rem;
+    width: 20rem;
+    
+    grid-template-columns: repeat(10,1fr);
+    grid-template-rows: repeat(10,1fr);
+    
+}
+.playarea > div:first-child div, .playarea > div:last-child div{
+    border: solid black 1px;
+}
+.ship
+{
+    background-color: rgba(106, 158, 221, 0.901);
+    border: 1px solid blue;
+}
+
+
