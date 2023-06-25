@@ -1,3 +1,5 @@
+
+
 //Ship factory function
 function Ships(len)
 {
@@ -37,12 +39,28 @@ Legend:
 */
 function gameBoard()
 {
-    const isitmyturn = true;
-    var player = 0;
-    const setplayer = (num) =>
+    var isitmyturn = true;
+    var player = null;
+    const setPlayer = (turn) =>
     {
-        player = num;
+        player = turn;
+
     }
+    const getPlayer = () =>
+    {
+        return player;
+    }
+
+    const Setmyturn = (turn) =>
+    {
+        isitmyturn = turn;
+
+    }
+    const getTurn = () =>
+    {
+        return isitmyturn;
+    }
+    var gameover = false;
     const gameb = [[0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0],
@@ -132,25 +150,32 @@ function gameBoard()
     }
     const updateUI = ()=>
     {
+        var p = '';
+        if(player === 1){
+            p+='A';
+        }
+        else{
+            p+='B'
+        }
         for(var i = 0;i < 10; i++)
         {
             for (var j = 0;j < 10; j++)
             {
-                if(gameb[i][j] ===1 && player===1)
+                if(gameb[i][j] ===1)
                 {
-                    const id = 'A'+i.toString()+j.toString();
+                    const id = p+i.toString()+j.toString();
                     var tile = document.getElementById(id);
                     tile.classList = "ship";
                 }
                 else if(gameb[i][j] ===3)
                 {
-                    const id = 'B'+i.toString()+j.toString();
+                    const id = p+i.toString()+j.toString();
                     var tile = document.getElementById(id);
                     tile.innerText = "X";
                 }
                 else if(gameb[i][j] ===4)
                 {
-                    const id = 'B'+i.toString()+j.toString();
+                    const id = p+i.toString()+j.toString();
                     var tile = document.getElementById(id);
                     tile.innerText = "MISS";
                 }
@@ -160,6 +185,10 @@ function gameBoard()
     //function to take a hit
     const takehit = (event) =>
     {
+        if(getTurn())
+        {
+            return;
+        }
         const row = parseInt(event.target.id[1]);
         const col = parseInt(event.target.id[2]);
         if(gameb[row][col] === 1)
@@ -188,6 +217,8 @@ function gameBoard()
             
         })
         checkGO();
+        passover();
+        
         // console.log(gameb);
     }
     const checkGO = () =>
@@ -203,16 +234,16 @@ function gameBoard()
         if(count === 5)
         {
             alert('All ships sunk');
+            gameover = true;
             location.reload();
+            
             return true;
         }
         return false;
-    }
-    const reset = () =>
-    {
         
     }
-    return {generateShips,gameb,ships,updateUI,setplayer,takehit,checkGO};
+    
+    return {generateShips,gameb,ships,updateUI,Setmyturn,takehit,checkGO,gameover,getTurn,setPlayer,getPlayer};
 }
 /*create gameboard for g and thier opponent og
  * Also randomly placing thier ships on the grid
@@ -221,11 +252,15 @@ function gameBoard()
 */
 const g = new gameBoard();
 const og = new gameBoard();
+g.setPlayer(1);
+og.setPlayer(2);
 
-g.setplayer(1);
+
 g.generateShips();
 
 og.generateShips(); 
+og.Setmyturn(false);
+
 
 ////////////////////////////////////
 
@@ -253,10 +288,42 @@ for(var i = 0;i < 10; i++)
     {
         const tile = document.createElement("div");
         tile.id='A'+i.toString()+j.toString();
+        tile.addEventListener('click',g.takehit);
         grid.appendChild(tile);
     }
 }
 /////////////////////////////////////////////////////
 g.updateUI();
+//gameloop
+var gridTiles = document.querySelectorAll(".gri div");
+var gridopTiles = document.querySelectorAll(".playarea > div:last-child div");
+function passover()
+{
+    if(!g.getTurn())
+    {
+        gridopTiles.forEach((tile)=>
+        {
+            tile.classList = "no";
+        })
+        g.updateUI();
+        // og.updateUI()
+        g.Setmyturn(true);
+        og.Setmyturn(false);
+    }
+    else{
+
+    
+    gridTiles.forEach((tile)=>
+        {
+            tile.classList = "no";
+        })
+        og.updateUI();
+        
+        og.Setmyturn(true);
+        g.Setmyturn(false);
+    }
+    
+}
+
 // og.updateUI();
 
