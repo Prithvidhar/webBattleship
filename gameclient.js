@@ -59,12 +59,16 @@ function gameBoard()
         isitmyturn = turn;
 
     }
+    const setB = (gamey) =>
+    {
+        gameb = gamey;
+    }
     const getTurn = () =>
     {
         return isitmyturn;
     }
     var gameover = false;
-    const gameb = [[0,0,0,0,0,0,0,0,0,0],
+    var gameb = [[0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0],
@@ -151,7 +155,7 @@ function gameBoard()
         }
         
     }
-    const updateUI = ()=>
+    const updateUI = (ignoreship = false)=>
     {
         var p = '';
         if(player === 1){
@@ -164,7 +168,7 @@ function gameBoard()
         {
             for (var j = 0;j < 10; j++)
             {
-                if(gameb[i][j] ===1)
+                if(gameb[i][j] ===1 && ignoreship === false)
                 {
                     const id = p+i.toString()+j.toString();
                     var tile = document.getElementById(id);
@@ -190,15 +194,20 @@ function gameBoard()
     {
         if(getTurn())
         {
+            console.log("not your turn");
             return;
         }
+        var hitormiss = null;
         const row = parseInt(event.target.id[1]);
         const col = parseInt(event.target.id[2]);
+        // gameb = this.gameb;
+        console.log(gameb);
         if(gameb[row][col] === 1)
         {
             console.log('KABOOM! A hit');
             gameb[row][col] = 3;
             event.target.classList = "hit";
+            hitormiss = true;
         }
         else if(gameb[row][col] === 3)
         {
@@ -208,8 +217,9 @@ function gameBoard()
             console.log('SPLOOSH!! A miss');
             gameb[row][col] = 4; 
             event.target.classList = "miss";
+            hitormiss = false;
         }
-        updateUI();
+        updateUI(true);
         //updating ships
         ships.forEach((ship)=>
         {
@@ -220,6 +230,9 @@ function gameBoard()
             
         })
         checkGO();
+        //sending hit coordinates to other player
+        socket.emit("hit",row,col,hitormiss);
+        isitmyturn = true;
         // passover();
         
         // console.log(gameb);
@@ -246,7 +259,7 @@ function gameBoard()
         
     }
     
-    return {generateShips,gameb,ships,updateUI,Setmyturn,takehit,checkGO,gameover,getTurn,setPlayer,getPlayer};
+    return {generateShips,gameb,ships,updateUI,Setmyturn,takehit,checkGO,gameover,getTurn,setB,setPlayer};
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*create gameboard for g and thier opponent og
@@ -255,8 +268,8 @@ function gameBoard()
  * Opponents ships are hidden, only left (the player's side) ships are visible.
 */
 
-const g = new gameBoard();
-var og  = null;
+var g = new gameBoard();
+var og  = new gameBoard();
 
 g.setPlayer(1);
 
@@ -267,16 +280,35 @@ g.generateShips();
 
 socket.on('sendboard',()=>
 {
-    console.log('insendboard');
-    socket.emit('sentboard',g)
+    console.log('insendboard',g);
+
+    
+    socket.emit('sentboard',JSON.stringify(g));
+    
+
 });
-socket.on('recieveoppo',(ogg)=>
+socket.on('recieveoppo',(ogg,dibs)=>
 {
-    og = ogg;
+    
+    const ogy = JSON.parse(ogg);
+    console.log("ogg",ogy.gameb);
+    og.setB(ogy.gameb);
+
+    if(dibs)
+    {
+        og.Setmyturn(true);
+    }
+    else{
+        og.Setmyturn(false);
+    }
     socket.emit('doneloading');
     console.log('help in recieveoppo');
     console.log(g)
     console.log(og);
+})
+socket.on("retry",()=>
+{
+    socket.emit("tryingagain");
 })
 socket.on('loadui',()=>
 {
@@ -310,6 +342,22 @@ socket.on('loadui',()=>
     }
     /////////////////////////////////////////////////////
     g.updateUI();
+})
+
+socket.on("reacttohit",(row,col,hitormiss)=>
+{
+    
+    if(hitormiss && g.getTurn())
+    {
+        g.gameb[row][col] = 3;
+    }
+    else if(g.getTurn()){
+        g.gameb[row][col] = 4;
+    }
+    og.Setmyturn(false);
+    g.updateUI();
+    
+    
 })
 
 
