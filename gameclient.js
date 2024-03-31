@@ -1,5 +1,7 @@
 
-// import { io } from "socket.io/dist/client";
+import { io } from "https://cdn.socket.io/4.4.1/socket.io.esm.min.js"
+// import "./start/addRequire.js";
+// var io = require("socket.io/dist/client")
 var socket = io.connect('http://localhost:3000');
 
 
@@ -359,7 +361,7 @@ socket.on("reacttohit",(row,col,hitormiss)=>
     
     
 })
-
+console.log('sand')
 
 ////////////////////////////////////
 
